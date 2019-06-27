@@ -175,6 +175,33 @@ export class Couchbase extends Common {
         }
     }
 
+    private convertToJsDocument(doc: com.couchbase.lite.Document): Object {
+        try {
+            if (!doc) return null;
+            const keys = doc.getKeys();
+            const size = keys.size();
+            let object = {};
+            object['id'] = doc.getId();
+            for (let i = 0; i < size; i++) {
+                const key = keys.get(i);
+                const nativeItem = doc.getValue(key);
+                const newItem = {};
+                newItem[key] = this.deserialize(nativeItem);
+                object = Object.assign(object, newItem);
+            }
+            return object;
+        } catch (e) {
+            console.error(e.message);
+            return null;
+        }
+    }
+
+    static stringArrayToJavaStringList(arr: string[]): java.util.List<string> {
+        let strList = new java.util.List();
+        arr.forEach(value => strList.add(value));
+        return strList;
+    }
+
     private fromISO8601UTC(date: string) {
         const dateFormat = new java.text.SimpleDateFormat(
             'yyyy-MM-dd\'T\'HH:mm:ss.SSS'
@@ -667,10 +694,9 @@ export class Couchbase extends Common {
         return items;
     }
 
-    createReplication(remoteUrl: string, direction: 'push' | 'pull' | 'both') {
-
+    createReplication(remoteUrl: string, direction: 'push' | 'pull' | 'both', channels?: string[], pushFilter?: (document: any, flags: any) => boolean, pullFilter?: (document: any, flags: any) => boolean) {
         const uri = new com.couchbase.lite.URLEndpoint(new java.net.URI(remoteUrl));
-        const repConfig = new com.couchbase.lite.ReplicatorConfiguration(
+        const repConfig: com.couchbase.lite.ReplicatorConfiguration = new com.couchbase.lite.ReplicatorConfiguration(
             this.android,
             uri
         );
@@ -687,11 +713,28 @@ export class Couchbase extends Common {
                 com.couchbase.lite.ReplicatorConfiguration.ReplicatorType.PUSH_AND_PULL
             );
         }
+        if (pushFilter) {
+            // repConfig.setPushFilter((document: any, flags: any): boolean => {}));
+            repConfig.setPushFilter({filtered: (document, flags): boolean => {
+                let js_document = this.convertToJsDocument(document);
+                let js_flags = flags.toArray();
+                return pushFilter(js_document, js_flags);
+            }});
+        }
+        if (pullFilter) {
+            repConfig.setPullFilter({filtered: (document, flags): boolean => {
+                let js_document = this.convertToJsDocument(document);
+                let js_flags = flags.toArray();
+                return pushFilter(js_document, js_flags);
+            }});
+        }
+        if (channels && channels.length > 0) {
+            repConfig.setChannels(Couchbase.stringArrayToJavaStringList(channels));
+        }
 
         const replicator = new com.couchbase.lite.Replicator(repConfig);
 
         return new Replicator(replicator);
-
     }
 
     createPullReplication(
@@ -728,6 +771,10 @@ export class Couchbase extends Common {
 export class Replicator extends ReplicatorBase {
     constructor(replicator: any) {
         super(replicator);
+    }
+
+    private getReplicator(): com.couchbase.lite.Replicator {
+        return this.replicator;
     }
 
     start() {
@@ -773,6 +820,23 @@ export class Replicator extends ReplicatorBase {
             new com.couchbase.lite.BasicAuthenticator(username, password)
         );
         this.replicator = new com.couchbase.lite.Replicator(newConfig);
+    }
+
+    setChannels(channels: string[]) {
+        const newConfig = new com.couchbase.lite.ReplicatorConfiguration(this.replicator.getConfig());
+        newConfig.setChannels(Couchbase.stringArrayToJavaStringList(channels));
+        this.replicator = new com.couchbase.lite.Replicator(newConfig);
+    }
+
+    addDocumentReplicationListener(listener: (documents: {documentId: string, error: any}[], isPush: boolean) => void) {
+        this.getReplicator().addDocumentReplicationListener({replication: (replication: com.couchbase.lite.DocumentReplication) => {
+            let isPush = replication.isPush();
+            let docs: {documentId: string, error: any}[] = [];
+            (<com.couchbase.lite.ReplicatedDocument[]>replication.getDocuments().toArray()).forEach(element => {
+                docs.push({documentId: element.getID(), error: element.getError().toString()});
+            });
+            listener(docs, isPush);
+        }});
     }
 }
 

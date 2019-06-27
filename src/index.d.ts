@@ -27,7 +27,7 @@ export declare class Couchbase extends Common {
 
     query(query?: Query): any[];
 
-    createReplication(remoteUrl: string, direction: 'push' | 'pull' | 'both'): Replicator;
+    createReplication(remoteUrl: string, direction: 'push' | 'pull' | 'both', channels?: string[], pushFilter?: (document: any, flags: any) => boolean, pullFilter?: (document: any, flags: any) => boolean): Replicator;
 
     createPullReplication(remoteUrl: string, username?: string, password?: string): Replicator;
 
@@ -54,5 +54,9 @@ export declare class Replicator extends ReplicatorBase {
     setSessionIdAndCookieName(sessionId: string, cookieName: string): any;
 
     setSessionId(sessionId: string): any;
+
+    setChannels(channels: string[]): void;
+
+    addDocumentReplicationListener(listener: (documents: {documentId: string, error: any}[], isPush: boolean) => void): void;
 }
 

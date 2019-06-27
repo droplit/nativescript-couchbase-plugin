@@ -22,7 +22,7 @@ export abstract class Common {
 
     abstract createPushReplication(remoteUrl: string);
 
-    abstract createReplication(remoteUrl: string, direction: 'push' | 'pull' | 'both');
+    abstract createReplication(remoteUrl: string, direction: 'push' | 'pull' | 'both', channels?: string[], pushFilter?: (document: any, flags: any) => boolean, pullFilter?: (document: any, flags: any) => boolean);
 
     abstract addDatabaseChangeListener(callback: any);
 
@@ -53,6 +53,10 @@ export abstract class ReplicatorBase {
     abstract setSessionIdAndCookieName(sessionId: string, cookieName: string);
 
     abstract setSessionId(sessionId: string);
+
+    abstract setChannels(channels: string[]);
+
+    abstract addDocumentReplicationListener(listener: (documents: {documentId: string, error: any}[], isPush: boolean) => void);
 }
 
 export enum QueryMeta {
