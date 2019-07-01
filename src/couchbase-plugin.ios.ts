@@ -13,7 +13,7 @@ import * as utils from 'tns-core-modules/utils/utils';
 
 export {
     Query, QueryMeta, QueryArrayOperator, QueryComparisonOperator, QueryLogicalOperator, QueryOrderItem, QueryWhereItem
-}from './couchbase-plugin.common';
+} from './couchbase-plugin.common';
 
 
 declare var CBLDatabase,
@@ -539,7 +539,7 @@ export class Couchbase extends Common {
         return nativeQuery;
     }
 
-    query(query: Query = {select: [QueryMeta.ALL, QueryMeta.ID]}) {
+    query(query: Query = { select: [QueryMeta.ALL, QueryMeta.ID] }) {
         const items = [];
         let select = [];
         let from;
@@ -720,6 +720,14 @@ export class Replicator extends ReplicatorBase {
             sessionId
         );
         this.replicator = CBLReplicator.alloc().initWithConfig(newConfig);
+    }
+
+    setChannels(channels: string[]) {
+        throw new Error('Not implemented');
+    }
+
+    addDocumentReplicationListener(listener: (documents: { documentId: string, error: any }[], isPush: boolean) => void) {
+        throw new Error('Not implemented');
     }
 }
 

@@ -197,7 +197,7 @@ export class Couchbase extends Common {
     }
 
     static stringArrayToJavaStringList(arr: string[]): java.util.List<string> {
-        let strList = new java.util.List();
+        let strList = new java.util.ArrayList<string>();
         arr.forEach(value => strList.add(value));
         return strList;
     }
@@ -571,7 +571,7 @@ export class Couchbase extends Common {
         return nativeQuery;
     }
 
-    query(query: Query = {select: [QueryMeta.ALL, QueryMeta.ID]}) {
+    query(query: Query = { select: [QueryMeta.ALL, QueryMeta.ID] }) {
         const items = [];
         let select = [];
         if (!query.select || query.select.length === 0) {
@@ -715,18 +715,22 @@ export class Couchbase extends Common {
         }
         if (pushFilter) {
             // repConfig.setPushFilter((document: any, flags: any): boolean => {}));
-            repConfig.setPushFilter({filtered: (document, flags): boolean => {
-                let js_document = this.convertToJsDocument(document);
-                let js_flags = flags.toArray();
-                return pushFilter(js_document, js_flags);
-            }});
+            repConfig.setPushFilter(new com.couchbase.lite.ReplicationFilter({
+                filtered: (document, flags): boolean => {
+                    let js_document = this.convertToJsDocument(document);
+                    let js_flags = flags.toArray();
+                    return pushFilter(js_document, js_flags);
+                }
+            }));
         }
         if (pullFilter) {
-            repConfig.setPullFilter({filtered: (document, flags): boolean => {
-                let js_document = this.convertToJsDocument(document);
-                let js_flags = flags.toArray();
-                return pushFilter(js_document, js_flags);
-            }});
+            repConfig.setPullFilter(new com.couchbase.lite.ReplicationFilter({
+                filtered: (document, flags): boolean => {
+                    let js_document = this.convertToJsDocument(document);
+                    let js_flags = flags.toArray();
+                    return pushFilter(js_document, js_flags);
+                }
+            }));
         }
         if (channels && channels.length > 0) {
             repConfig.setChannels(Couchbase.stringArrayToJavaStringList(channels));
@@ -828,15 +832,17 @@ export class Replicator extends ReplicatorBase {
         this.replicator = new com.couchbase.lite.Replicator(newConfig);
     }
 
-    addDocumentReplicationListener(listener: (documents: {documentId: string, error: any}[], isPush: boolean) => void) {
-        this.getReplicator().addDocumentReplicationListener({replication: (replication: com.couchbase.lite.DocumentReplication) => {
-            let isPush = replication.isPush();
-            let docs: {documentId: string, error: any}[] = [];
-            (<com.couchbase.lite.ReplicatedDocument[]>replication.getDocuments().toArray()).forEach(element => {
-                docs.push({documentId: element.getID(), error: element.getError().toString()});
-            });
-            listener(docs, isPush);
-        }});
+    addDocumentReplicationListener(listener: (documents: { documentId: string, error: any }[], isPush: boolean) => void) {
+        this.getReplicator().addDocumentReplicationListener(new com.couchbase.lite.DocumentReplicationListener({
+            replication: (replication: com.couchbase.lite.DocumentReplication) => {
+                let isPush = replication.isPush();
+                let docs: { documentId: string, error: any }[] = [];
+                (<com.couchbase.lite.ReplicatedDocument[]>replication.getDocuments().toArray()).forEach(element => {
+                    docs.push({ documentId: element.getID(), error: element.getError().toString() });
+                });
+                listener(docs, isPush);
+            }
+        }));
     }
 }
 
