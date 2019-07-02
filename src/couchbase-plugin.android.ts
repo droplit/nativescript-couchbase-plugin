@@ -714,7 +714,6 @@ export class Couchbase extends Common {
             );
         }
         if (pushFilter) {
-            // repConfig.setPushFilter((document: any, flags: any): boolean => {}));
             repConfig.setPushFilter(new com.couchbase.lite.ReplicationFilter({
                 filtered: (document, flags): boolean => {
                     let js_document = this.convertToJsDocument(document);
@@ -728,7 +727,7 @@ export class Couchbase extends Common {
                 filtered: (document, flags): boolean => {
                     let js_document = this.convertToJsDocument(document);
                     let js_flags = flags.toArray();
-                    return pushFilter(js_document, js_flags);
+                    return pullFilter(js_document, js_flags);
                 }
             }));
         }
@@ -794,6 +793,17 @@ export class Replicator extends ReplicatorBase {
             this.replicator.getStatus().getActivityLevel() ===
             com.couchbase.lite.AbstractReplicator.ActivityLevel.BUSY
         );
+    }
+
+    getChannels() {
+        const channels = this.replicator.getConfig().getChannels();
+        const js_channels = [];
+
+        for (let i = 0; i < channels.size(); i++) {
+            js_channels.push(channels.get(i));
+        }
+
+        return js_channels;
     }
 
     setContinuous(isContinuous: boolean) {

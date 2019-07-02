@@ -46,6 +46,8 @@ export abstract class ReplicatorBase {
 
     abstract isRunning();
 
+    abstract getChannels();
+
     abstract setContinuous(isContinuous: boolean);
 
     abstract setUserNameAndPassword(username: string, password: string);

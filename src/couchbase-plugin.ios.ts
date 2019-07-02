@@ -690,6 +690,10 @@ export class Replicator extends ReplicatorBase {
         return false;
     }
 
+    getChannels() {
+        throw new Error('Not implemented');
+    }
+
     setContinuous(isContinuous: boolean) {
         const newConfig = CBLReplicatorConfiguration.alloc().initWithConfig(this.replicator.config);
         newConfig.continuous = isContinuous;
