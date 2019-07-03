@@ -31,6 +31,12 @@ export abstract class Common {
     abstract setBlob(id: string, name: string, blob: any, mimeType: string);
 
     abstract getBlob(id: string, name: string);
+
+    abstract createIndex(name: string, properties: string[]);
+
+    abstract getIndexes();
+
+    abstract deleteIndex(name: string);
 }
 
 export abstract class ReplicatorBase {

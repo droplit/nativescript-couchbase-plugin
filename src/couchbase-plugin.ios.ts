@@ -665,6 +665,18 @@ export class Couchbase extends Common {
         }
         return 'bin';
     }
+
+    createIndex(name: string, properties: string[]) {
+        throw new Error('Not implemented');
+    }
+
+    getIndexes() {
+        throw new Error('Not implemented');
+    }
+
+    deleteIndex(name: string) {
+        throw new Error('Not implemented');
+    }
 }
 
 export class Replicator extends ReplicatorBase {

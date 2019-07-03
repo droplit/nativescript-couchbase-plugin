@@ -769,6 +769,28 @@ export class Couchbase extends Common {
         });
         this.android.addChangeListener(new listener());
     }
+
+    createIndex(name: string, properties: string[]) {
+        const valueIndexItems = properties.map(property => com.couchbase.ValueIndexItem.property(property));
+
+        this.android.createIndex(name, com.couchbase.IndexBuilder.valueIndex(...valueIndexItems));
+    }
+
+    getIndexes() {
+        const indexes = this.android.getIndexes();
+        const size = indexes.size();
+        const js_indexes = [];
+
+        for (let i = 0; i < size; i++) {
+            js_indexes.push(indexes.get(i));
+        }
+
+        return js_indexes;
+    }
+
+    deleteIndex(name: string) {
+        this.android.deleteIndex(name);
+    }
 }
 
 export class Replicator extends ReplicatorBase {
@@ -797,9 +819,10 @@ export class Replicator extends ReplicatorBase {
 
     getChannels() {
         const channels = this.replicator.getConfig().getChannels();
+        const size = channels.size();
         const js_channels = [];
 
-        for (let i = 0; i < channels.size(); i++) {
+        for (let i = 0; i < size; i++) {
             js_channels.push(channels.get(i));
         }
 
