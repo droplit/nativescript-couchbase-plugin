@@ -91,9 +91,12 @@ export class Couchbase extends Common {
                 this.android.save(document);
             } else {
                 // TODO what else to check ... maybe native objects ??
+                const nativeBlob = new com.couchbase.lite.Blob(mimeType, blob);
+                document.setBlob(name, nativeBlob);
+                this.android.save(document);
             }
         } catch (e) {
-            console.debug(e);
+            console.log(e);
         }
     }
 
