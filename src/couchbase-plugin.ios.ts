@@ -76,10 +76,10 @@ export class Couchbase extends Common {
                     const nativeBlob = CBLBlob.alloc().initWithContentTypeFileURLError(mimeType, NSURL.URLWithString(path));
                     document.setBlobForKey(nativeBlob, name);
                 } else if (blob.startsWith(`res`)) {
-                    const bundle = utils.ios.getter(NSBundle, NSBundle.mainBundle);
-                    const path = bundle.pathForResourceOfType(blob.replace('res://', ''), this.getExtension(mimeType));
-                    const nativeBlob = CBLBlob.alloc().initWithContentTypeFileURLError(mimeType, NSURL.URLWithString(path));
-                    document.setBlobForKey(nativeBlob, name);
+                    // const bundle = utils.ios.getter(NSBundle, NSBundle.mainBundle);
+                    // const path = bundle.pathForResourceOfType(blob.replace('res://', ''), this.getExtension(mimeType));
+                    // const nativeBlob = CBLBlob.alloc().initWithContentTypeFileURLError(mimeType, NSURL.URLWithString(path));
+                    // document.setBlobForKey(nativeBlob, name);
                 } else {
                     // TODO what else to check?
                 }
